@@ -1,10 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 import crackerRoutes from './routes/crackerRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +32,18 @@ app.use('/api/settings', settingsRoutes);
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Cracker Billing API is running smoothly' });
 });
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Start Server
 const PORT = process.env.PORT || 5000;
