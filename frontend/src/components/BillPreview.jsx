@@ -1,12 +1,14 @@
-import React, { useRef } from 'react';
-import { X, Printer, Share2, DollarSign, CreditCard, Receipt } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { X, Printer, Share2, DollarSign, CreditCard, Receipt, Loader2, Download } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
+import html2canvas from 'html2canvas';
 
 export const BillPreview = ({ order, isOpen, onClose }) => {
   if (!isOpen || !order) return null;
 
   const { settings } = useCart();
   const printAreaRef = useRef();
+  const [sharingImage, setSharingImage] = useState(false);
 
   const handlePrint = () => {
     const printContent = printAreaRef.current;
@@ -71,32 +73,64 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
     setTimeout(() => document.body.removeChild(iframe), 1000);
   };
 
-  const handleWhatsAppShare = () => {
-    const itemsText = order.items
-      .map((item, index) => `${index + 1}. ${item.name} (${item.quantity} Qty) - ₹${item.amount}`)
-      .join('\n');
+  const handleWhatsAppShare = async () => {
+    if (!printAreaRef.current) return;
+    setSharingImage(true);
 
-    const message = `*INVOICE: ${order.billNumber}*\n` +
-      `--------------------------------\n` +
-      `*${settings.shopName}*\n` +
-      `${settings.shopAddress}\n` +
-      `Phone: ${settings.shopPhone}\n` +
-      `--------------------------------\n` +
-      `*Customer:* ${order.customerName}\n` +
-      `${order.customerPhone ? `*Phone:* ${order.customerPhone}\n` : ''}` +
-      `*Date:* ${new Date(order.createdAt).toLocaleDateString()} ${new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\n` +
-      `--------------------------------\n` +
-      `*Items:*\n${itemsText}\n` +
-      `--------------------------------\n` +
-      `*Gross Total:* ₹${order.grossTotal}\n` +
-      `*Discount:* -₹${order.discountTotal}\n` +
-      `*Net Payable:* ₹${order.netTotal}\n` +
-      `*Payment Mode:* ${order.paymentMode}\n` +
-      `--------------------------------\n` +
-      `Thank you for your business! 🎇`;
+    try {
+      // Capture the bill as a high-quality PNG image
+      const canvas = await html2canvas(printAreaRef.current, {
+        scale: 2,           // 2x resolution for crisp quality
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
 
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+      const fileName = `Bill-${order.billNumber}-${order.customerName}.png`;
+
+      // ── MOBILE: Use Web Share API to share image directly to WhatsApp ──
+      if (navigator.canShare && navigator.share) {
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: `Bill - ${order.billNumber}`,
+              });
+            } catch (e) {
+              // User cancelled share — no error needed
+            }
+          } else {
+            // File sharing not supported — download instead
+            downloadImage(canvas, fileName);
+          }
+          setSharingImage(false);
+        }, 'image/png');
+        return;
+      }
+
+      // ── DESKTOP: Download image + open WhatsApp ──
+      downloadImage(canvas, fileName);
+      // Brief delay then open WhatsApp so user can attach the downloaded image
+      setTimeout(() => {
+        const note = `Bill ${order.billNumber} for ${order.customerName} - ₹${order.netTotal}. (Attach the downloaded image)`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(note)}`, '_blank');
+      }, 800);
+
+    } catch (err) {
+      console.error('Image capture failed:', err);
+    } finally {
+      setSharingImage(false);
+    }
+  };
+
+  // Helper: trigger PNG download
+  const downloadImage = (canvas, fileName) => {
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   };
 
   // Generate UPI QR Code URL
@@ -319,21 +353,52 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
         </div>
 
         {/* Modal Actions */}
-        <div className="flex p-3 border-t border-slate-200 bg-slate-50 space-x-2.5">
+        <div className="flex flex-col p-3 border-t border-slate-200 bg-slate-50 gap-2">
+          <div className="flex gap-2">
+            <button
+              onClick={handlePrint}
+              className="flex-1 flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-extrabold rounded-xl shadow-md transition-all transform active:scale-95 cursor-pointer border border-amber-600 text-xs"
+            >
+              <Printer className="w-4 h-4" />
+              <span>பிரிண்ட் (Print)</span>
+            </button>
+            
+            <button
+              onClick={handleWhatsAppShare}
+              disabled={sharingImage}
+              className="flex-1 flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-emerald-400 text-white font-extrabold rounded-xl shadow-md transition-all transform active:scale-95 cursor-pointer border border-emerald-700 text-xs disabled:cursor-not-allowed"
+            >
+              {sharingImage ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Capturing...</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4" />
+                  <span>வாட்ஸ்அப் (WhatsApp)</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Download Image button - useful on desktop */}
           <button
-            onClick={handlePrint}
-            className="flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-extrabold rounded-xl shadow-md transition-all transform active:scale-95 cursor-pointer border border-amber-600 text-xs"
+            onClick={async () => {
+              if (!printAreaRef.current) return;
+              setSharingImage(true);
+              try {
+                const canvas = await html2canvas(printAreaRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+                downloadImage(canvas, `Bill-${order.billNumber}-${order.customerName}.png`);
+              } finally {
+                setSharingImage(false);
+              }
+            }}
+            disabled={sharingImage}
+            className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-300 text-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            <Printer className="w-4 h-4" />
-            <span>பிரிண்ட் (Print)</span>
-          </button>
-          
-          <button
-            onClick={handleWhatsAppShare}
-            className="flex-1 flex items-center justify-center space-x-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold rounded-xl shadow-md transition-all transform active:scale-95 cursor-pointer border border-emerald-700 text-xs"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>வாட்ஸ்அப் (WhatsApp)</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>Download as Image (PNG)</span>
           </button>
         </div>
 
