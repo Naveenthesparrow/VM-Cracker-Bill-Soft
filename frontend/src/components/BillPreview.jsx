@@ -9,7 +9,66 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
   const printAreaRef = useRef();
 
   const handlePrint = () => {
-    window.print();
+    const printContent = printAreaRef.current;
+    if (!printContent) return;
+
+    // Create a hidden iframe and print only the bill HTML inside it
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Bill - ${order.billNumber}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { font-family: 'Inter', sans-serif; font-size: 11px; color: #000; background: #fff; padding: 8mm; }
+            h1 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #b91c1c; margin-bottom: 4px; }
+            .header { text-align: center; padding-bottom: 8px; border-bottom: 1.5px dashed #000; margin-bottom: 8px; }
+            .header p { font-size: 10px; margin-top: 2px; }
+            .greeting { text-align: center; margin: 8px 0; padding: 6px; border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
+            .greeting p { font-size: 10px; }
+            .details { margin: 8px 0; display: grid; grid-template-columns: 120px 1fr; gap: 4px 8px; font-size: 10px; }
+            .details .label { color: #555; }
+            .details .value { font-weight: 700; text-align: right; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
+            th { background: #f3f4f6; padding: 5px 6px; border: 1px solid #000; font-weight: 700; }
+            td { padding: 5px 6px; border: 1px solid #000; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .strike { text-decoration: line-through; color: #ef4444; font-size: 9px; }
+            .green { color: #059669; font-weight: 800; }
+            .totals { margin-top: 8px; border-top: 1.5px solid #000; padding-top: 6px; font-size: 11px; }
+            .totals-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+            .totals-row.net { font-weight: 800; font-size: 13px; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
+            .footer { margin-top: 12px; text-align: center; font-size: 9px; border-top: 1px dashed #000; padding-top: 8px; color: #555; }
+            @media print { @page { size: 80mm auto; margin: 5mm; } }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+
+    // Remove iframe after printing
+    setTimeout(() => document.body.removeChild(iframe), 1000);
   };
 
   const handleWhatsAppShare = () => {

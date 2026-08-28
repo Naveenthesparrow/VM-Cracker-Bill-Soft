@@ -37,10 +37,10 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.warn('Backend is offline. Switching to Offline Mode (LocalStorage & Static Fallbacks).', error);
       setOfflineMode(true);
-      
+
       // Fallback 1: Local crackers
       setCrackers(localCrackers);
-      
+
       // Fallback 2: Local settings
       const storedSettings = localStorage.getItem('cracker_settings');
       if (storedSettings) {
@@ -143,7 +143,7 @@ export const CartProvider = ({ children }) => {
         const today = new Date();
         const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
         const billNumber = `INV-${dateStr}-${String(orders.length + 1).padStart(3, '0')} (OFFLINE)`;
-        
+
         const newOrder = {
           ...orderData,
           _id: `off_${Date.now()}`,
