@@ -283,10 +283,10 @@ export const Billing = () => {
           : 'h-[58vh] md:h-full flex-[1.1]'
       }`}>
         
-        {/* Filters bar */}
-        <div className="flex flex-col sm:flex-row gap-2 bg-white border border-slate-200 p-2.5 rounded-2xl shadow-xs">
-          {/* Search bar */}
-          <div className="relative flex-1">
+        {/* Filters bar — always stacked: search on top, pills below */}
+        <div className="flex flex-col gap-2 bg-white border border-slate-200 p-2.5 rounded-2xl shadow-xs">
+          {/* Search bar — full width */}
+          <div className="relative w-full">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
               <Search className="w-4 h-4" />
             </span>
@@ -295,12 +295,12 @@ export const Billing = () => {
               placeholder="Search by Code, Name, or தமிழ்..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-250 rounded-xl text-slate-900 placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs font-extrabold"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs font-extrabold"
             />
           </div>
 
-          {/* Category Filter Pills (Horizontal Scroll) */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto py-0.5 scrollbar-none max-w-full sm:max-w-md">
+          {/* Category Filter Pills — full width horizontal scroll */}
+          <div className="flex items-center space-x-1.5 overflow-x-auto py-0.5 scrollbar-none w-full">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -308,7 +308,7 @@ export const Billing = () => {
                 className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
-                    : 'bg-slate-50 border border-slate-200 text-slate-650 hover:bg-slate-100 hover:border-slate-350'
+                    : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
                 }`}
               >
                 {cat.toUpperCase()}
