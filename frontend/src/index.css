@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide default browser up/down spinners in number inputs (Chrome, Safari, Edge, Opera) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide default browser up/down spinners in number inputs (Firefox) */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Beautiful custom light scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 6, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 119, 6, 0.4);
+}
+
+/* Sparkle glow animations tailored for light theme */
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(217, 119, 6, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(217, 119, 6, 0.4), 0 0 15px rgba(220, 38, 38, 0.2);
+  }
+}
+
+.sparkle-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Print Stylesheet integration */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 5mm;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none;
+  }
+}
