@@ -119,7 +119,8 @@ export const Billing = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-61px)] flex flex-col md:flex-row overflow-hidden bg-slate-100 text-slate-800 no-print">
+    <>
+      <div className="h-[calc(100vh-61px)] flex flex-col md:flex-row overflow-hidden bg-slate-100 text-slate-800 no-print">
       
       {/* LEFT COLUMN: Active Cart / Bill Sheet */}
       <div className={`bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
@@ -508,8 +509,9 @@ export const Billing = () => {
           </div>
         </div>
       )}
+      </div>
 
-      {/* Bill Print Modal */}
+      {/* Bill Print Modal (Outside no-print parent) */}
       {isPreviewOpen && (
         <BillPreview
           order={savedOrder}
@@ -520,7 +522,7 @@ export const Billing = () => {
           }}
         />
       )}
-    </div>
+    </>
   );
 };
 export default Billing;

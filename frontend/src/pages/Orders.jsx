@@ -33,7 +33,8 @@ export const Orders = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-60px)] pb-24 pt-4 max-w-5xl mx-auto px-4 no-print text-slate-800">
+    <>
+      <div className="min-h-[calc(100vh-60px)] pb-24 pt-4 max-w-5xl mx-auto px-4 no-print text-slate-800">
       
       {/* Page Title & Search */}
       <div className="flex flex-col space-y-4">
@@ -126,8 +127,9 @@ export const Orders = () => {
           </div>
         )}
       </div>
+      </div>
 
-      {/* Bill Preview Modal overlay */}
+      {/* Bill Preview Modal overlay (Outside no-print parent) */}
       {isPreviewOpen && (
         <BillPreview
           order={selectedOrder}
@@ -138,7 +140,7 @@ export const Orders = () => {
           }}
         />
       )}
-    </div>
+    </>
   );
 };
 export default Orders;
