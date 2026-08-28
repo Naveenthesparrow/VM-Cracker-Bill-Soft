@@ -35,7 +35,7 @@ app.get('/health', (req, res) => {
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../../frontend/dist');
+  const distPath = path.resolve(__dirname, '../../frontend/dist');
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api')) {
