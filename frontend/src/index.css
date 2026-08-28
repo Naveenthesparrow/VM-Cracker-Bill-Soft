@@ -59,54 +59,51 @@ input[type=number] {
   animation: pulseGlow 2s infinite ease-in-out;
 }
 
-/* ============================================================
-   THERMAL RECEIPT PRINTER CSS (58mm paper width)
-   ============================================================ */
+/* Print Stylesheet integration */
 @media print {
-
-  /* Hide everything on the page */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* Only show the thermal receipt block */
-  .thermal-receipt,
-  .thermal-receipt * {
-    visibility: visible !important;
-  }
-
-  .thermal-receipt {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 48mm !important;        /* Optimized for 58mm printer */
-    max-width: 48mm !important;
-    margin: 0 !important;
-    padding: 2mm !important;
+  body {
     background: white !important;
     color: black !important;
-    font-family: 'Courier New', Courier, monospace !important;
-    font-size: 8pt !important;
-    line-height: 1.2 !important;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
   }
 
-  /* Hide everything else */
   .no-print {
     display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
   }
 
   ::-webkit-scrollbar {
     display: none;
   }
 
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
   @page {
-    size: 58mm auto;               
-    margin: 0mm;
+    size: auto;
+    margin: 5mm;
   }
 }
 
 @media screen {
-  .thermal-receipt {
+  .print-only {
     display: none;
   }
 }

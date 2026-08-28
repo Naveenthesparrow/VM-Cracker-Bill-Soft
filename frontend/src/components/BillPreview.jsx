@@ -41,6 +41,7 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
   };
 
   // Generate UPI QR Code URL
+  // Format: upi://pay?pa=recipient@upi&pn=RecipientName&am=Amount&cu=INR
   const upiQRUrl = settings.upiId
     ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
         `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
@@ -50,16 +51,17 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm no-print">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] flex flex-col overflow-hidden mx-4">
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm no-print">
+      {/* Modal Container */}
+      <div className="relative flex flex-col w-full max-w-lg h-[90vh] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center space-x-2">
-            <Receipt className="w-5 h-5 text-amber-600" />
-            <h2 className="font-black text-slate-800 text-sm">பில் விவரம் (Bill Details)</h2>
+            <Receipt className="w-5 h-5 text-slate-500 animate-pulse" />
+            <h2 className="text-lg font-extrabold text-slate-800">பில் விவரம் (Bill Details)</h2>
           </div>
-          <button
+          <button 
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
           >
@@ -70,7 +72,7 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
         {/* Scrollable Receipt Area */}
         <div className="flex-1 p-3 md:p-6 overflow-y-auto bg-slate-100">
           
-          {/* Screen Preview Card */}
+          {/* Print Template Wrapper (This matches print-only CSS) */}
           <div 
             ref={printAreaRef} 
             className="p-3.5 md:p-6 bg-white text-black rounded-lg shadow-inner max-w-md mx-auto w-full"
@@ -150,138 +152,109 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
               </tbody>
             </table>
 
-            {/* Totals */}
-            <div className="mt-4 pt-3 border-t border-slate-200 space-y-1.5 text-xs">
-              <div className="flex justify-between text-slate-600 font-semibold">
-                <span>மொத்த மதிப்பு (Gross):</span>
-                <span className="font-mono">₹{order.grossTotal}</span>
+            {/* Totals Summary */}
+            <div className="mt-4 pt-3 border-t border-dashed border-gray-300 text-xs space-y-1.5">
+              <div className="flex justify-between text-gray-600">
+                <span>மொத்த மதிப்பு (Gross Total)</span>
+                <span>₹{order.grossTotal}</span>
               </div>
-              <div className="flex justify-between text-emerald-600 font-extrabold">
-                <span>தள்ளுபடி (Saved):</span>
-                <span className="font-mono">-₹{order.discountTotal}</span>
+              <div className="flex justify-between text-emerald-600 font-bold">
+                <span>தள்ளுபடி (Discount Saved)</span>
+                <span>-₹{order.discountTotal}</span>
               </div>
-              <div className="flex justify-between font-black text-sm border-t border-slate-300 pt-2 mt-1">
-                <span>செலுத்த வேண்டியவை (Total):</span>
-                <span className="text-emerald-600 font-mono">₹{order.netTotal}</span>
+              <div className="flex justify-between text-gray-900 pt-1 border-t border-gray-200">
+                <span className="font-extrabold text-sm">செலுத்த வேண்டியவை (Net Payable)</span>
+                <span className="text-base text-emerald-600 font-black font-mono">₹{order.netTotal}</span>
               </div>
-              {order.paymentMode && (
-                <div className="flex justify-between text-slate-500 font-semibold text-[11px]">
-                  <span>Payment Mode:</span>
-                  <span className="font-bold text-slate-700">{order.paymentMode}</span>
-                </div>
-              )}
             </div>
 
-            {/* UPI QR Code */}
-            {upiQRUrl && (
-              <div className="mt-4 flex flex-col items-center pt-3 border-t border-dashed border-slate-300">
-                <p className="text-[11px] text-slate-500 font-semibold mb-2">UPI Payment QR Code</p>
-                <img src={upiQRUrl} alt="UPI QR" className="w-28 h-28 rounded border border-slate-200" />
-                <p className="text-[10px] text-slate-400 mt-1 font-mono">{settings.upiId}</p>
-              </div>
-            )}
-
-            {/* Footer */}
-            <div className="text-center mt-5 pt-3 border-t border-dashed border-slate-300">
-              <p className="text-xs font-black text-slate-700">இனிய தீபாவளி நல்வாழ்த்துகள்! மிக்க நன்றி!</p>
+            {/* Receipt Footer */}
+            <div className="text-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-dashed border-slate-200">
+              <p className="font-bold text-slate-800">இனிய தீபாவளி நல்வாழ்த்துகள்!</p>
+              <p className="mt-0.5 font-medium">மிக்க நன்றி! மீண்டும் வருக!</p>
             </div>
           </div>
 
-          {/* ─────────────────────────────────────────────────────────────
-              THERMAL RECEIPT — only visible when window.print() is called
-              Formatted for 58mm / 80mm Bluetooth thermal printers
-              ───────────────────────────────────────────────────────────── */}
-          <div className="thermal-receipt">
-
-            {/* Shop Header */}
-            <div style={{ textAlign: 'center', borderBottom: '1px dashed black', paddingBottom: '4px', marginBottom: '4px' }}>
-              <div style={{ fontWeight: '900', fontSize: '11pt', letterSpacing: '1px' }}>{settings.shopName}</div>
-              <div style={{ fontSize: '7pt', marginTop: '2px' }}>{settings.shopAddress}</div>
-              <div style={{ fontSize: '7pt', marginTop: '1px' }}>Ph: {settings.shopPhone}</div>
+          {/* Copy of printed receipt for window.print() formatting */}
+          <div className="print-only">
+            <div className="text-center pb-3 border-b border-dashed border-black">
+              <h1 className="text-base font-bold uppercase" style={{ margin: '0' }}>{settings.shopName}</h1>
+              <p className="text-[10px]" style={{ margin: '2px 0 0 0' }}>{settings.shopAddress}</p>
+              <p className="text-[10px]" style={{ margin: '2px 0 0 0' }}>Phone: {settings.shopPhone}</p>
             </div>
 
-            {/* Bill Meta */}
-            <div style={{ fontSize: '7pt', marginBottom: '4px', lineHeight: '1.5' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Bill No:</span>
-                <span style={{ fontWeight: 'bold' }}>{order.billNumber}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Date:</span>
-                <span>{new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Customer:</span>
-                <span style={{ fontWeight: 'bold' }}>{order.customerName}{order.customerPhone ? ` / ${order.customerPhone}` : ''}</span>
-              </div>
+            <div className="my-3 text-[10px] grid grid-cols-[120px_1fr] gap-y-1.5 gap-x-2 items-start" style={{ lineOrigin: '2px' }}>
+              <span className="text-gray-700">பில் எண் (Bill No):</span>
+              <span className="font-bold text-right">{order.billNumber}</span>
+              
+              <span className="text-gray-700">தேதி (Date):</span>
+              <span className="text-right">{new Date(order.createdAt).toLocaleString()}</span>
+              
+              <span className="text-gray-700">வாடிக்கையாளர் (Customer):</span>
+              <span className="font-bold text-right break-all">{order.customerName} {order.customerPhone ? `(${order.customerPhone})` : ''}</span>
             </div>
 
-            {/* Greeting */}
-            <div style={{ textAlign: 'center', borderTop: '1px dashed black', borderBottom: '1px dashed black', padding: '3px 0', margin: '4px 0', fontSize: '7pt' }}>
-              <div style={{ fontWeight: 'bold' }}>அன்பான வாடிக்கையாளர் {order.customerName} அவர்களுக்கு நன்றி!</div>
-              <div>Happy Diwali from VM Crackers!</div>
+            {/* Printed Welcome Greeting */}
+            <div className="text-center my-2 py-1.5 border-t border-b border-dashed border-black">
+              <p className="text-[9px] font-bold" style={{ margin: 0 }}>அன்பான வாடிக்கையாளர் {order.customerName} அவர்களுக்கு நன்றி!</p>
+              <p className="text-[8px]" style={{ margin: '2px 0 0 0' }}>Hi {order.customerName}, Thank you for celebrating with VM Crackers!</p>
             </div>
 
-            {/* Items Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7pt', marginTop: '4px' }}>
+            <table className="w-full text-left text-[10px] border-collapse" style={{ marginTop: '5px', border: '1px solid black' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid black', borderTop: '1px solid black' }}>
-                  <th style={{ textAlign: 'left',  padding: '2px 1px', width: '40%' }}>ITEM</th>
-                  <th style={{ textAlign: 'center', padding: '2px 1px', width: '22%' }}>RATE</th>
-                  <th style={{ textAlign: 'center', padding: '2px 1px', width: '10%' }}>QTY</th>
-                  <th style={{ textAlign: 'right',  padding: '2px 1px', width: '28%' }}>TOTAL</th>
+                <tr className="font-bold" style={{ backgroundColor: '#f3f4f6' }}>
+                  <th style={{ padding: '4px 6px', border: '1px solid black' }}>பொருள் (Item)</th>
+                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>விலை (Rate)</th>
+                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>அளவு (Qty)</th>
+                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'right' }}>தொகை (Amount)</th>
                 </tr>
               </thead>
               <tbody>
                 {order.items.map((item, idx) => {
-                  const discRate = Math.round(item.amount / item.quantity);
+                  const discUnitRate = Math.round(item.amount / item.quantity);
+                  const isDiscounted = item.rate > discUnitRate;
                   return (
-                    <tr key={idx} style={{ borderBottom: '1px dotted #aaa' }}>
-                      <td style={{ padding: '2px 1px', verticalAlign: 'top' }}>
-                        <div style={{ fontWeight: 'bold', lineHeight: '1.2' }}>{item.name}</div>
-                        {item.tamilName && <div style={{ fontSize: '6pt' }}>({item.tamilName})</div>}
+                    <tr key={idx}>
+                      <td style={{ padding: '4px 6px', border: '1px solid black' }}>
+                        <div className="font-semibold">{item.name}</div>
+                        {item.tamilName && <div className="text-[8px] text-gray-500">({item.tamilName})</div>}
                       </td>
-                      <td style={{ textAlign: 'center', padding: '2px 1px', verticalAlign: 'top' }}>
-                        {item.rate > discRate ? (
-                          <div>
-                            <div style={{ textDecoration: 'line-through', fontSize: '6pt' }}>₹{item.rate}</div>
-                            <div style={{ fontWeight: 'bold' }}>₹{discRate}</div>
+                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>
+                        {isDiscounted ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <span style={{ textDecoration: 'line-through', color: 'red', fontSize: '8px' }}>₹{item.rate}</span>
+                            <span style={{ color: '#059669', fontWeight: 'bold', fontSize: '10px' }}>₹{discUnitRate}</span>
                           </div>
-                        ) : <span>₹{item.rate}</span>}
+                        ) : (
+                          <span>₹{item.rate}</span>
+                        )}
                       </td>
-                      <td style={{ textAlign: 'center', padding: '2px 1px', fontWeight: 'bold', verticalAlign: 'top' }}>{item.quantity}</td>
-                      <td style={{ textAlign: 'right',  padding: '2px 1px', fontWeight: 'bold', verticalAlign: 'top' }}>₹{item.amount}</td>
+                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>{item.quantity}</td>
+                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'right', fontWeight: 'bold' }}>₹{item.amount}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
 
-            {/* Totals */}
-            <div style={{ borderTop: '1px solid black', marginTop: '4px', paddingTop: '4px', fontSize: '7pt', lineHeight: '1.6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Gross Total:</span><span>₹{order.grossTotal}</span>
+            <div className="mt-3 pt-2 border-t border-dashed border-black text-[10px]">
+              <div className="flex justify-between">
+                <span>மொத்த மதிப்பு (Gross):</span>
+                <span>₹{order.grossTotal}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Discount (Saved):</span><span>-₹{order.discountTotal}</span>
+              <div className="flex justify-between" style={{ color: '#059669', fontWeight: 'bold' }}>
+                <span>தள்ளுபடி (Saved):</span>
+                <span>-₹{order.discountTotal}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '9pt', borderTop: '1px solid black', marginTop: '2px', paddingTop: '2px' }}>
-                <span>NET PAYABLE:</span><span>₹{order.netTotal}</span>
+              <div className="flex justify-between font-bold text-xs" style={{ marginTop: '2px', borderTop: '1px solid black', paddingTop: '2px' }}>
+                <span>செலுத்த வேண்டியவை (Total):</span>
+                <span style={{ color: '#059669', fontWeight: '900' }}>₹{order.netTotal}</span>
               </div>
-              {order.paymentMode && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-                  <span>Payment:</span><span style={{ fontWeight: 'bold' }}>{order.paymentMode}</span>
-                </div>
-              )}
             </div>
 
-            {/* Footer */}
-            <div style={{ textAlign: 'center', borderTop: '1px dashed black', marginTop: '8px', paddingTop: '4px', fontSize: '7pt' }}>
-              <div style={{ fontWeight: 'bold' }}>இனிய தீபாவளி நல்வாழ்த்துகள்!</div>
-              <div>Thank you! Visit again.</div>
-              <div style={{ marginTop: '2px' }}>*** VM CRACKERS ***</div>
+            <div className="text-center text-[9px]" style={{ marginTop: '15px' }}>
+              <p style={{ fontWeight: 'bold' }}>இனிய தீபாவளி நல்வாழ்த்துகள்! மிக்க நன்றி!</p>
             </div>
-
           </div>
 
         </div>

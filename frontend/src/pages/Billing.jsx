@@ -40,10 +40,46 @@ export const Billing = () => {
     });
   }, [crackers]);
 
-  // Extract unique categories
+  // Fixed category order — matches the catalogue sequence (productId order)
+  const CATEGORY_ORDER = [
+    'ONE SOUND CRACKERS',
+    'FLOWER POTS CRACKERS',
+    'CHAKKAR CRACKERS',
+    'NEW VERITY CHAKKAR',
+    'BOMB CRACKERS',
+    'BIJILI CRACKERS',
+    'TWINKLING STAR',
+    'PENCIL CRACKERS',
+    'ROCKET CRACKERS',
+    'PAPER BOMB CRACKERS',
+    'DELUXE CRACKERS',
+    'WALA CRACKERS',
+    'PEACOCK CRACKERS',
+    'KIDS VERITES CRACKERS',
+    'SPECIAL VERITES',
+    'FOUNTAIN FANCY CRACKERS',
+    'MINI FOUNTAIN',
+    'MINI FOUNTAIN - BACARDI',
+    '4" FOUNTAIN',
+    'ARIAL FANCY CRACKERS',
+    '2026 NEW VERITES',
+    'TIN FOUNTAIN',
+    'MULTI COLOUR SHOT',
+    'SINGLE SHOT ITAMS',
+    '2 PCS FANCY CRACKERS',
+    'SPARKLERS CRACKERS',
+    'MATCH BOX',
+    'STONE CARTOON CRACKERS',
+    'GIFT BOX NET RATE',
+  ];
+
+  // Extract unique categories from crackers data, sorted by CATEGORY_ORDER
   const categories = useMemo(() => {
-    const list = new Set(crackers.map((c) => c.category));
-    return ['All', ...Array.from(list)];
+    const available = new Set(crackers.map((c) => c.category));
+    const ordered = CATEGORY_ORDER.filter((cat) => available.has(cat));
+    // Append any DB categories not in our fixed list at the end
+    available.forEach((cat) => { if (!CATEGORY_ORDER.includes(cat)) ordered.push(cat); });
+    return ['All', ...ordered];
   }, [crackers]);
 
   // Filter products based on search and category
