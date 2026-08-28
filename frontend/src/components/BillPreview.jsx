@@ -72,9 +72,10 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
         {/* Scrollable Receipt Area */}
         <div className="flex-1 p-3 md:p-6 overflow-y-auto bg-slate-100">
           
-          {/* Print Template Wrapper (This matches print-only CSS) */}
+          {/* Print Template Wrapper */}
           <div 
             ref={printAreaRef} 
+            id="print-receipt-card"
             className="p-3.5 md:p-6 bg-white text-black rounded-lg shadow-inner max-w-md mx-auto w-full"
             style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
           >
@@ -172,88 +173,6 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
             <div className="text-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-dashed border-slate-200">
               <p className="font-bold text-slate-800">இனிய தீபாவளி நல்வாழ்த்துகள்!</p>
               <p className="mt-0.5 font-medium">மிக்க நன்றி! மீண்டும் வருக!</p>
-            </div>
-          </div>
-
-          {/* Copy of printed receipt for window.print() formatting */}
-          <div className="print-only">
-            <div className="text-center pb-3 border-b border-dashed border-black">
-              <h1 className="text-base font-bold uppercase" style={{ margin: '0' }}>{settings.shopName}</h1>
-              <p className="text-[10px]" style={{ margin: '2px 0 0 0' }}>{settings.shopAddress}</p>
-              <p className="text-[10px]" style={{ margin: '2px 0 0 0' }}>Phone: {settings.shopPhone}</p>
-            </div>
-
-            <div className="my-3 text-[10px] grid grid-cols-[120px_1fr] gap-y-1.5 gap-x-2 items-start" style={{ lineOrigin: '2px' }}>
-              <span className="text-gray-700">பில் எண் (Bill No):</span>
-              <span className="font-bold text-right">{order.billNumber}</span>
-              
-              <span className="text-gray-700">தேதி (Date):</span>
-              <span className="text-right">{new Date(order.createdAt).toLocaleString()}</span>
-              
-              <span className="text-gray-700">வாடிக்கையாளர் (Customer):</span>
-              <span className="font-bold text-right break-all">{order.customerName} {order.customerPhone ? `(${order.customerPhone})` : ''}</span>
-            </div>
-
-            {/* Printed Welcome Greeting */}
-            <div className="text-center my-2 py-1.5 border-t border-b border-dashed border-black">
-              <p className="text-[9px] font-bold" style={{ margin: 0 }}>அன்பான வாடிக்கையாளர் {order.customerName} அவர்களுக்கு நன்றி!</p>
-              <p className="text-[8px]" style={{ margin: '2px 0 0 0' }}>Hi {order.customerName}, Thank you for celebrating with VM Crackers!</p>
-            </div>
-
-            <table className="w-full text-left text-[10px] border-collapse" style={{ marginTop: '5px', border: '1px solid black' }}>
-              <thead>
-                <tr className="font-bold" style={{ backgroundColor: '#f3f4f6' }}>
-                  <th style={{ padding: '4px 6px', border: '1px solid black' }}>பொருள் (Item)</th>
-                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>விலை (Rate)</th>
-                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>அளவு (Qty)</th>
-                  <th style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'right' }}>தொகை (Amount)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.items.map((item, idx) => {
-                  const discUnitRate = Math.round(item.amount / item.quantity);
-                  const isDiscounted = item.rate > discUnitRate;
-                  return (
-                    <tr key={idx}>
-                      <td style={{ padding: '4px 6px', border: '1px solid black' }}>
-                        <div className="font-semibold">{item.name}</div>
-                        {item.tamilName && <div className="text-[8px] text-gray-500">({item.tamilName})</div>}
-                      </td>
-                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>
-                        {isDiscounted ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <span style={{ textDecoration: 'line-through', color: 'red', fontSize: '8px' }}>₹{item.rate}</span>
-                            <span style={{ color: '#059669', fontWeight: 'bold', fontSize: '10px' }}>₹{discUnitRate}</span>
-                          </div>
-                        ) : (
-                          <span>₹{item.rate}</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'center' }}>{item.quantity}</td>
-                      <td style={{ padding: '4px 6px', border: '1px solid black', textAlign: 'right', fontWeight: 'bold' }}>₹{item.amount}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            <div className="mt-3 pt-2 border-t border-dashed border-black text-[10px]">
-              <div className="flex justify-between">
-                <span>மொத்த மதிப்பு (Gross):</span>
-                <span>₹{order.grossTotal}</span>
-              </div>
-              <div className="flex justify-between" style={{ color: '#059669', fontWeight: 'bold' }}>
-                <span>தள்ளுபடி (Saved):</span>
-                <span>-₹{order.discountTotal}</span>
-              </div>
-              <div className="flex justify-between font-bold text-xs" style={{ marginTop: '2px', borderTop: '1px solid black', paddingTop: '2px' }}>
-                <span>செலுத்த வேண்டியவை (Total):</span>
-                <span style={{ color: '#059669', fontWeight: '900' }}>₹{order.netTotal}</span>
-              </div>
-            </div>
-
-            <div className="text-center text-[9px]" style={{ marginTop: '15px' }}>
-              <p style={{ fontWeight: 'bold' }}>இனிய தீபாவளி நல்வாழ்த்துகள்! மிக்க நன்றி!</p>
             </div>
           </div>
 
