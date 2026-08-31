@@ -30,6 +30,7 @@ export const Billing = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [savedOrder, setSavedOrder] = useState(null);
   const [isCartCollapsed, setIsCartCollapsed] = useState(false);
+  const [isCategoryExpanded, setIsCategoryExpanded] = useState(true);
 
   // Sort crackers numerically by productId
   const sortedCrackers = useMemo(() => {
@@ -300,21 +301,49 @@ export const Billing = () => {
             />
           </div>
 
-          {/* Category Filter Pills — full width horizontal scroll */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto py-0.5 scrollbar-none w-full">
-            {categories.map((cat) => (
+          {/* Category Filter Pills — collapsible with arrow */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between px-0.5 pt-0.5">
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Categories</span>
+                {selectedCategory !== 'All' && (
+                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[9px] font-extrabold rounded-md border border-amber-200">
+                    {selectedCategory}
+                  </span>
+                )}
+              </div>
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
-                    : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
-                }`}
+                type="button"
+                onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
+                className="flex items-center space-x-1 text-[10px] font-black text-slate-600 hover:text-amber-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg cursor-pointer transition-colors border border-slate-200/80"
+                title={isCategoryExpanded ? "Close Categories" : "Open Categories"}
               >
-                {cat.toUpperCase()}
+                <span>{isCategoryExpanded ? 'Close' : 'Open'}</span>
+                {isCategoryExpanded ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
               </button>
-            ))}
+            </div>
+
+            <div className={`flex flex-wrap items-center gap-1.5 transition-all duration-300 py-0.5 w-full ${
+              isCategoryExpanded ? 'max-h-40 overflow-y-auto scrollbar-thin' : 'max-h-8 overflow-hidden'
+            }`}>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`whitespace-nowrap px-2.5 py-1 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
+                    selectedCategory === cat
+                      ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
+                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
