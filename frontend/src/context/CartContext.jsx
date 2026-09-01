@@ -169,6 +169,26 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Update invoice
+  const updateOrder = async (orderId, updatedData) => {
+    try {
+      if (offlineMode || orderId.startsWith('off_')) {
+        const updatedOrders = orders.map(o =>
+          o._id === orderId ? { ...o, ...updatedData } : o
+        );
+        setOrders(updatedOrders);
+        localStorage.setItem('cracker_orders', JSON.stringify(updatedOrders));
+        return updatedOrders.find(o => o._id === orderId);
+      }
+      const res = await axios.put(`${API_URL}/orders/${orderId}`, updatedData);
+      setOrders(prev => prev.map(o => (o._id === orderId ? res.data : o)));
+      return res.data;
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      return null;
+    }
+  };
+
   // Delete invoice
   const deleteOrder = async (orderId) => {
     try {
@@ -252,6 +272,7 @@ export const CartProvider = ({ children }) => {
         clearCart,
         updateSettings,
         saveOrder,
+        updateOrder,
         deleteOrder,
         refreshData: fetchData
       }}

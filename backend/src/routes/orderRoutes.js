@@ -47,6 +47,24 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT update an order
+router.put('/:id', async (req, res) => {
+  try {
+    const { customerName, customerPhone, items, grossTotal, discountTotal, netTotal, paymentMode } = req.body;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { customerName, customerPhone, items, grossTotal, discountTotal, netTotal, paymentMode },
+      { new: true, runValidators: true }
+    );
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Bill not found' });
+    }
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // DELETE an order
 router.delete('/:id', async (req, res) => {
   try {
