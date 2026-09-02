@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { ShoppingCart, History, Package, BarChart2, Menu, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ShoppingCart, History, Package, BarChart2, Menu, X, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 
-export const Navbar = ({ activeTab, setActiveTab }) => {
+export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
   const { totalItems } = useCart();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
 
   const navItems = [
     { id: 'billing', label: 'Billing', icon: ShoppingCart, count: totalItems },
@@ -35,9 +38,64 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             </div>
           </div>
 
-          <div></div>
+          {/* Search Icon Button (right side of header) */}
+          <button
+            id="navbar-search-btn"
+            onClick={() => {
+              setIsSearchOpen((prev) => !prev);
+              setTimeout(() => searchInputRef.current?.focus(), 80);
+            }}
+            className={`p-2 rounded-xl transition-all duration-200 cursor-pointer ${
+              isSearchOpen
+                ? 'bg-amber-500 text-slate-950 shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="Search products"
+          >
+            <Search className="w-5 h-5" />
+          </button>
         </div>
       </header>
+
+      {/* Floating Search Overlay */}
+      {isSearchOpen && (
+        <div
+          className="sticky top-[61px] z-20 no-print md:ml-64"
+          id="navbar-search-overlay"
+        >
+          <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-lg px-4 py-3">
+            <div className="max-w-5xl mx-auto relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-amber-500">
+                <Search className="w-4 h-4" />
+              </span>
+              <input
+                ref={searchInputRef}
+                id="navbar-search-input"
+                type="search"
+                placeholder="Search by Code, Name, or தமிழ்..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  onSearch?.(e.target.value);
+                }}
+                className="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all text-sm font-extrabold"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    onSearch?.('');
+                    searchInputRef.current?.focus();
+                  }}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Backdrop Overlay */}
       {isMobileOpen && (

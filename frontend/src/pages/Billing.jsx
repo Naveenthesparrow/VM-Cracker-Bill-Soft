@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Minus, Trash2, Check, Printer, ListFilter, User, Phone, ShoppingBag, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Minus, Trash2, Check, Printer, ListFilter, User, Phone, ShoppingBag, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import BillPreview from '../components/BillPreview.jsx';
 import confetti from 'canvas-confetti';
 
-export const Billing = () => {
+export const Billing = ({ navSearchQuery = '' }) => {
   const {
     crackers,
     cart,
@@ -24,7 +24,6 @@ export const Billing = () => {
     setCustomerPhone
   } = useCart();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -87,15 +86,15 @@ export const Billing = () => {
   const filteredProducts = useMemo(() => {
     return sortedCrackers.filter((p) => {
       const matchesSearch =
-        p.productId.toString().includes(searchQuery) ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.tamilName && p.tamilName.toLowerCase().includes(searchQuery.toLowerCase()));
+        p.productId.toString().includes(navSearchQuery) ||
+        p.name.toLowerCase().includes(navSearchQuery.toLowerCase()) ||
+        (p.tamilName && p.tamilName.toLowerCase().includes(navSearchQuery.toLowerCase()));
 
       const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
     });
-  }, [sortedCrackers, searchQuery, selectedCategory]);
+  }, [sortedCrackers, navSearchQuery, selectedCategory]);
 
   // Get active cart items
   const cartItems = useMemo(() => {
@@ -127,7 +126,7 @@ export const Billing = () => {
       <div className={`bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
         isCartCollapsed
           ? 'h-[48px] md:h-full md:w-[390px] flex-none'
-          : 'h-[42vh] md:h-full md:w-[390px] flex-[0.9] md:flex-none'
+          : 'h-[55vh] md:h-full md:w-[390px] flex-[0.9] md:flex-none'
       }`}>
         {/* Cart Header */}
         <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between h-[48px] shrink-0">
@@ -245,9 +244,9 @@ export const Billing = () => {
         </div>
 
         {/* Cart Totals & Actions */}
-        <div className={`p-3 bg-slate-50 border-t border-slate-200 space-y-2 transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
+        <div className={`px-3 py-1.5 bg-slate-50 border-t border-slate-200 space-y-1.5 transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
           {/* Breakdown */}
-          <div className="space-y-1 text-[11px] font-bold text-slate-500">
+          <div className="space-y-0.5 text-[10px] font-bold text-slate-500">
             <div className="flex justify-between">
               <span>Gross Total:</span>
               <span className="font-mono">₹{grossTotal}</span>
@@ -256,9 +255,9 @@ export const Billing = () => {
               <span>Saved (90%):</span>
               <span className="font-mono">-₹{discountTotal}</span>
             </div>
-            <div className="flex justify-between text-slate-900 font-black text-xs border-t border-slate-200 pt-1.5 mt-0.5">
+            <div className="flex justify-between text-slate-900 font-black text-[11px] border-t border-slate-200 pt-1 mt-0.5">
               <span>Net Payable:</span>
-              <span className="text-sm text-emerald-600 font-mono">₹{netTotal}</span>
+              <span className="text-xs text-emerald-600 font-mono">₹{netTotal}</span>
             </div>
           </div>
 
@@ -266,40 +265,28 @@ export const Billing = () => {
           <button
             onClick={() => cartItems.length > 0 && setIsCheckoutOpen(true)}
             disabled={cartItems.length === 0}
-            className={`w-full py-2.5 rounded-xl shadow-md transition-all font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98 ${
+            className={`w-full py-1.5 rounded-lg shadow-md transition-all font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98 ${
               cartItems.length > 0
                 ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border border-amber-600'
                 : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
             }`}
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             <span>Generate Bill</span>
           </button>
         </div>
+
       </div>
 
       {/* RIGHT COLUMN: Product Catalogue Grid */}
       <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden p-3 space-y-2.5 ${
         isCartCollapsed
           ? 'h-[calc(100vh-109px)] md:h-full flex-1'
-          : 'h-[58vh] md:h-full flex-[1.1]'
+          : 'h-[45vh] md:h-full flex-[1.1]'
       }`}>
         
         {/* Filters bar — always stacked: search on top, pills below */}
         <div className="flex flex-col gap-2 bg-white border border-slate-200 p-2.5 rounded-2xl shadow-xs">
-          {/* Search bar — full width */}
-          <div className="relative w-full">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-              <Search className="w-4 h-4" />
-            </span>
-            <input
-              type="search"
-              placeholder="Search by Code, Name, or தமிழ்..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs font-extrabold"
-            />
-          </div>
 
           {/* Category Filter Pills — collapsible with arrow */}
           <div className="space-y-1">

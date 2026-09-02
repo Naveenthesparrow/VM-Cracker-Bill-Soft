@@ -8,11 +8,12 @@ import Analytics from './pages/Analytics.jsx';
 
 export const App = () => {
   const [activeTab, setActiveTab] = useState('billing');
+  const [navSearchQuery, setNavSearchQuery] = useState('');
 
   const renderActivePage = () => {
     switch (activeTab) {
       case 'billing':
-        return <Billing />;
+        return <Billing navSearchQuery={navSearchQuery} />;
       case 'orders':
         return <Orders />;
       case 'products':
@@ -28,7 +29,7 @@ export const App = () => {
     <CartProvider>
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
         {/* Navigation & Header */}
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} onSearch={setNavSearchQuery} />
         
         {/* Main Content Pane */}
         <main className="flex-1 overflow-x-hidden md:pl-64">
