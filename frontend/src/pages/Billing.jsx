@@ -30,6 +30,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
   const [savedOrder, setSavedOrder] = useState(null);
   const [isCartCollapsed, setIsCartCollapsed] = useState(false);
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(true);
+  const [isTotalsExpanded, setIsTotalsExpanded] = useState(true);
 
   // Sort crackers numerically by productId
   const sortedCrackers = useMemo(() => {
@@ -244,36 +245,63 @@ export const Billing = ({ navSearchQuery = '' }) => {
         </div>
 
         {/* Cart Totals & Actions */}
-        <div className={`px-3 py-1.5 bg-slate-50 border-t border-slate-200 space-y-1.5 transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
-          {/* Breakdown */}
-          <div className="space-y-0.5 text-[10px] font-bold text-slate-500">
-            <div className="flex justify-between">
-              <span>Gross Total:</span>
-              <span className="font-mono">₹{grossTotal}</span>
-            </div>
-            <div className="flex justify-between text-emerald-600 font-extrabold">
-              <span>Saved (90%):</span>
-              <span className="font-mono">-₹{discountTotal}</span>
-            </div>
-            <div className="flex justify-between text-slate-900 font-black text-[11px] border-t border-slate-200 pt-1 mt-0.5">
-              <span>Net Payable:</span>
-              <span className="text-xs text-emerald-600 font-mono">₹{netTotal}</span>
-            </div>
+        <div className={`px-3 py-1.5 bg-slate-50 border-t border-slate-200 transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
+
+          {/* Toggle Header Row */}
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+              {!isTotalsExpanded && cartItems.length > 0 && (
+                <span className="text-emerald-600 font-mono"> ₹{netTotal}</span>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsTotalsExpanded(!isTotalsExpanded)}
+              className="flex items-center space-x-1 text-[10px] font-black text-slate-600 hover:text-amber-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg cursor-pointer transition-colors border border-slate-200/80"
+            >
+              <span>{isTotalsExpanded ? 'Close' : 'Open'}</span>
+              {isTotalsExpanded ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
 
-          {/* Checkout Trigger Button */}
-          <button
-            onClick={() => cartItems.length > 0 && setIsCheckoutOpen(true)}
-            disabled={cartItems.length === 0}
-            className={`w-full py-1.5 rounded-lg shadow-md transition-all font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98 ${
-              cartItems.length > 0
-                ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border border-amber-600'
-                : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
-            }`}
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Generate Bill</span>
-          </button>
+          {/* Collapsible Content */}
+          {isTotalsExpanded && (
+            <div className="space-y-1.5">
+              {/* Breakdown */}
+              <div className="space-y-0.5 text-[10px] font-bold text-slate-500">
+                <div className="flex justify-between">
+                  <span>Gross Total:</span>
+                  <span className="font-mono">₹{grossTotal}</span>
+                </div>
+                <div className="flex justify-between text-emerald-600 font-extrabold">
+                  <span>Saved (90%):</span>
+                  <span className="font-mono">-₹{discountTotal}</span>
+                </div>
+                <div className="flex justify-between text-slate-900 font-black text-[11px] border-t border-slate-200 pt-1 mt-0.5">
+                  <span>Net Payable:</span>
+                  <span className="text-xs text-emerald-600 font-mono">₹{netTotal}</span>
+                </div>
+              </div>
+
+              {/* Checkout Trigger Button */}
+              <button
+                onClick={() => cartItems.length > 0 && setIsCheckoutOpen(true)}
+                disabled={cartItems.length === 0}
+                className={`w-full py-1.5 rounded-lg shadow-md transition-all font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98 ${
+                  cartItems.length > 0
+                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border border-amber-600'
+                    : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+                }`}
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Generate Bill</span>
+              </button>
+            </div>
+          )}
         </div>
 
       </div>
@@ -285,54 +313,55 @@ export const Billing = ({ navSearchQuery = '' }) => {
           : 'h-[45vh] md:h-full flex-[1.1]'
       }`}>
         
-        {/* Filters bar — always stacked: search on top, pills below */}
-        <div className="flex flex-col gap-2 bg-white border border-slate-200 p-2.5 rounded-2xl shadow-xs">
-
-          {/* Category Filter Pills — collapsible with arrow */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between px-0.5 pt-0.5">
-              <div className="flex items-center space-x-1.5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Categories</span>
-                {selectedCategory !== 'All' && (
-                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[9px] font-extrabold rounded-md border border-amber-200">
-                    {selectedCategory}
-                  </span>
-                )}
-              </div>
+        {/* Categories — unified card like SELECTED ITEMS */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs shrink-0 overflow-hidden">
+          {/* Header row */}
+          <div className="flex items-center justify-between bg-slate-50 border-b border-slate-200 px-3 py-2.5">
+            <div className="flex items-center space-x-2">
               <button
                 type="button"
                 onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
-                className="flex items-center space-x-1 text-[10px] font-black text-slate-600 hover:text-amber-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg cursor-pointer transition-colors border border-slate-200/80"
-                title={isCategoryExpanded ? "Close Categories" : "Open Categories"}
+                className="p-0.5 text-slate-500 hover:text-slate-800 cursor-pointer transition-colors"
               >
-                <span>{isCategoryExpanded ? 'Close' : 'Open'}</span>
                 {isCategoryExpanded ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
+                  <ChevronUp className="w-4 h-4" />
                 ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <ChevronDown className="w-4 h-4" />
                 )}
               </button>
+              <h2 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                Categories
+              </h2>
             </div>
-
-            <div className={`flex flex-wrap items-center gap-1.5 transition-all duration-300 py-0.5 w-full ${
-              isCategoryExpanded ? 'max-h-40 overflow-y-auto scrollbar-thin' : 'max-h-8 overflow-hidden'
-            }`}>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap px-2.5 py-1 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
-                    selectedCategory === cat
-                      ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
-                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
-                  }`}
-                >
-                  {cat.toUpperCase()}
-                </button>
-              ))}
-            </div>
+            {selectedCategory !== 'All' && (
+              <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[9px] font-extrabold rounded-md border border-amber-200 max-w-[120px] truncate">
+                {selectedCategory}
+              </span>
+            )}
           </div>
+
+          {/* Pills */}
+          {isCategoryExpanded && (
+            <div className="px-2.5 py-2">
+              <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto scrollbar-thin">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`whitespace-nowrap px-2.5 py-1 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
+                        : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
+                    }`}
+                  >
+                    {cat.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
 
         {/* Products Grid */}
         <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin">
