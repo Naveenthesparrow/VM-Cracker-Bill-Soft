@@ -7,7 +7,7 @@ const settingsSchema = new mongoose.Schema({
   },
   shopAddress: {
     type: String,
-    default: '123 Main Road, Sivakasi, Tamil Nadu'
+    default: 'Sivakasi to Vembakottai Main Road, Vanamoorthilingapuram'
   },
   shopPhone: {
     type: String,

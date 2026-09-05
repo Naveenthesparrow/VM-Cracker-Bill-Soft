@@ -54,11 +54,7 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
           <p className="text-xs font-extrabold text-slate-800 mt-1">Phone: {settings.shopPhone}</p>
         </div>
 
-        {/* Personalized Customer Welcome Greeting */}
-        <div className="my-4 p-4 bg-rose-50 border-2 border-dashed border-rose-200 rounded-2xl text-center space-y-1">
-          <h3 className="text-xs font-black text-rose-950 leading-snug">அன்பான வாடிக்கையாளர் {order.customerName} அவர்களுக்கு நன்றி!</h3>
-          <p className="text-[11px] font-extrabold text-rose-700 leading-snug">Hi {order.customerName}, Thank you for celebrating this Diwali with VM Crackers!</p>
-        </div>
+
 
         {/* Bill Details */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 my-4 text-xs grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-3 items-start">
@@ -82,39 +78,39 @@ export const BillPreview = ({ order, isOpen, onClose }) => {
         </div>
 
         {/* Items Table */}
-        <table className="w-full text-left text-xs border-collapse mt-4 border border-slate-300 table-layout-fixed">
+        <table className="w-full text-left text-xs border-collapse mt-3 border border-slate-300">
           <thead>
-            <tr className="bg-slate-100 font-bold text-gray-700 text-[11px]">
-              <th className="py-2 px-1 md:px-2 border border-slate-300 w-[42%]">பொருள் (Item)</th>
-              <th className="py-2 px-1 md:px-2 border border-slate-300 text-center w-[23%]">விலை (Rate)</th>
-              <th className="py-2 px-1 md:px-2 border border-slate-300 text-center w-[13%]">அளவு (Qty)</th>
-              <th className="py-2 px-1 md:px-2 border border-slate-300 text-right w-[22%]">தொகை (Amount)</th>
+            <tr className="bg-slate-100 font-bold text-slate-800 text-[10px] uppercase tracking-wider">
+              <th className="py-1.5 px-2 border border-slate-300 w-[46%]">பொருள் (Item)</th>
+              <th className="py-1.5 px-1.5 border border-slate-300 text-center w-[20%]">விலை (Rate)</th>
+              <th className="py-1.5 px-1.5 border border-slate-300 text-center w-[14%]">அளவு (Qty)</th>
+              <th className="py-1.5 px-2 border border-slate-300 text-right w-[20%]">தொகை (Amount)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {order.items.map((item, idx) => {
               const discUnitRate = Math.round(item.amount / item.quantity);
               const isDiscounted = item.rate > discUnitRate;
               return (
-                <tr key={idx} className="text-gray-900 hover:bg-slate-50/50">
-                  <td className="py-2 px-1 md:px-2 border border-slate-200 break-words">
-                    <div className="font-bold text-slate-800 leading-tight">{item.name}</div>
+                <tr key={idx} className="text-slate-800 hover:bg-slate-50/50">
+                  <td className="py-1.5 px-2 border border-slate-300 leading-snug">
+                    <div className="font-extrabold text-[11px] text-slate-900">{item.name}</div>
                     {item.tamilName && (
                       <div className="text-[9px] text-slate-500 font-medium mt-0.5">({item.tamilName})</div>
                     )}
                   </td>
-                  <td className="py-2 px-1 md:px-2 border border-slate-200 text-center">
+                  <td className="py-1.5 px-1.5 border border-slate-300 text-center">
                     {isDiscounted ? (
-                      <div className="flex flex-col items-center justify-center">
-                        <span className="text-[9px] text-red-500 line-through font-medium">₹{item.rate}</span>
-                        <span className="text-[11px] font-black text-emerald-600">₹{discUnitRate}</span>
+                      <div className="flex flex-col items-center justify-center leading-none space-y-0.5">
+                        <span className="text-[8px] text-red-500 line-through font-medium">₹{item.rate}</span>
+                        <span className="text-[10px] font-black text-emerald-600">₹{discUnitRate}</span>
                       </div>
                     ) : (
-                      <span className="text-[11px] font-bold text-slate-700">₹{item.rate}</span>
+                      <span className="text-[10px] font-bold text-slate-700">₹{item.rate}</span>
                     )}
                   </td>
-                  <td className="py-2 px-1 md:px-2 border border-slate-200 text-center font-extrabold text-slate-800">{item.quantity}</td>
-                  <td className="py-2 px-1 md:px-2 border border-slate-200 text-right font-black text-slate-900">₹{item.amount}</td>
+                  <td className="py-1.5 px-1.5 border border-slate-300 text-center font-extrabold text-slate-900 text-[11px]">{item.quantity}</td>
+                  <td className="py-1.5 px-2 border border-slate-300 text-right font-black text-slate-900 text-[11px]">₹{item.amount}</td>
                 </tr>
               );
             })}

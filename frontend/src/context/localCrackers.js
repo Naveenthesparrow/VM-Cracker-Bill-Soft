@@ -1,10 +1,42 @@
 export const defaultSettings = {
   shopName: 'VM Crackers',
-  shopAddress: 'Sivakasi to Sankarankovil Main Road, Vembakottai',
+  shopAddress: 'Sivakasi to Vembakottai Main Road, Vanamoorthilingapuram',
   shopPhone: '+91 63698 09391, +91 89402 23892',
   globalDiscountPercentage: 90,
   upiId: '6369809391@upi'
 };
+
+export const CATEGORY_ORDER = [
+  'ONE SOUND CRACKERS',
+  'FLOWER POTS CRACKERS',
+  'CHAKKAR CRACKERS',
+  'NEW VERITY CHAKKAR',
+  'BOMB CRACKERS',
+  'BIJILI CRACKERS',
+  'TWINKLING STAR',
+  'PENCIL CRACKERS',
+  'ROCKET CRACKERS',
+  'PAPER BOMB CRACKERS',
+  'DELUXE CRACKERS',
+  'WALA CRACKERS',
+  'PEACOCK CRACKERS',
+  'KIDS VERITES CRACKERS',
+  'SPECIAL VERITES',
+  'FOUNTAIN FANCY CRACKERS',
+  'MINI FOUNTAIN',
+  'MINI FOUNTAIN - BACARDI',
+  '4" FOUNTAIN',
+  'ARIAL FANCY CRACKERS',
+  '2026 NEW VERITES',
+  'TIN FOUNTAIN',
+  'MULTI COLOUR SHOT',
+  'SINGLE SHOT ITAMS',
+  '2 PCS FANCY CRACKERS',
+  'SPARKLERS CRACKERS',
+  'MATCH BOX',
+  'STONE CARTOON CRACKERS',
+  'GIFT BOX NET RATE',
+];
 
 export const localCrackers = [
   // ONE SOUND CRACKERS (1-8)

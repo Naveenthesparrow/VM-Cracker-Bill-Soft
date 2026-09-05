@@ -4,7 +4,7 @@ import { localCrackers, defaultSettings } from './localCrackers.js';
 
 const CartContext = createContext();
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const CartProvider = ({ children }) => {
   const [crackers, setCrackers] = useState([]);
@@ -38,8 +38,17 @@ export const CartProvider = ({ children }) => {
       console.warn('Backend is offline. Switching to Offline Mode (LocalStorage & Static Fallbacks).', error);
       setOfflineMode(true);
 
-      // Fallback 1: Local crackers
-      setCrackers(localCrackers);
+      // Fallback 1: Local crackers (or cached products)
+      const storedCrackers = localStorage.getItem('cracker_products');
+      if (storedCrackers) {
+        try {
+          setCrackers(JSON.parse(storedCrackers));
+        } catch (e) {
+          setCrackers(localCrackers);
+        }
+      } else {
+        setCrackers(localCrackers);
+      }
 
       // Fallback 2: Local settings
       const storedSettings = localStorage.getItem('cracker_settings');
@@ -243,6 +252,62 @@ export const CartProvider = ({ children }) => {
   const totalItems = cartList.length;
   const totalQuantity = cartList.reduce((acc, item) => acc + item.quantity, 0);
 
+  // Add a new product/cracker
+  const addCracker = async (newCrackerData) => {
+    try {
+      if (offlineMode) {
+        const newProduct = {
+          ...newCrackerData,
+          _id: `off_p_${Date.now()}`,
+          inStock: true
+        };
+        const updated = [...crackers, newProduct];
+        setCrackers(updated);
+        localStorage.setItem('cracker_products', JSON.stringify(updated));
+        return newProduct;
+      }
+      const res = await axios.post(`${API_URL}/crackers`, newCrackerData);
+      setCrackers((prev) => [...prev, res.data]);
+      return res.data;
+    } catch (error) {
+      console.warn('Failed to add cracker to server, saving locally:', error);
+      const newProduct = {
+        ...newCrackerData,
+        _id: `off_p_${Date.now()}`,
+        inStock: true
+      };
+      const updated = [...crackers, newProduct];
+      setCrackers(updated);
+      localStorage.setItem('cracker_products', JSON.stringify(updated));
+      return newProduct;
+    }
+  };
+
+  // Update existing cracker details
+  const updateCracker = async (crackerId, updatePayload) => {
+    try {
+      if (offlineMode || String(crackerId).startsWith('off_p_')) {
+        const updated = crackers.map(c => 
+          c._id === crackerId || c.productId === crackerId ? { ...c, ...updatePayload } : c
+        );
+        setCrackers(updated);
+        localStorage.setItem('cracker_products', JSON.stringify(updated));
+        return true;
+      }
+      const res = await axios.put(`${API_URL}/crackers/${crackerId}`, updatePayload);
+      setCrackers(prev => prev.map(c => (c._id === crackerId ? res.data : c)));
+      return true;
+    } catch (error) {
+      console.error('Failed to update cracker:', error);
+      const updated = crackers.map(c => 
+        c._id === crackerId || c.productId === crackerId ? { ...c, ...updatePayload } : c
+      );
+      setCrackers(updated);
+      localStorage.setItem('cracker_products', JSON.stringify(updated));
+      return true;
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -270,6 +335,8 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         removeFromCart,
         clearCart,
+        addCracker,
+        updateCracker,
         updateSettings,
         saveOrder,
         updateOrder,

@@ -257,7 +257,7 @@ const seedDB = async () => {
     await Settings.deleteMany({});
     await Settings.create({
       shopName: 'VM Crackers',
-      shopAddress: 'Sivakasi to Sankarankovil Main Road, Vembakottai',
+      shopAddress: 'Sivakasi to Vembakottai Main Road, Vanamoorthilingapuram',
       shopPhone: '+91 63698 09391, +91 89402 23892',
       globalDiscountPercentage: 90,
       upiId: '6369809391@upi'

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Minus, Trash2, Check, Printer, ListFilter, User, Phone, ShoppingBag, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
+import { CATEGORY_ORDER } from '../context/localCrackers.js';
 import BillPreview from '../components/BillPreview.jsx';
 import confetti from 'canvas-confetti';
 
@@ -40,39 +41,6 @@ export const Billing = ({ navSearchQuery = '' }) => {
       return numA - numB;
     });
   }, [crackers]);
-
-  // Fixed category order — matches the catalogue sequence (productId order)
-  const CATEGORY_ORDER = [
-    'ONE SOUND CRACKERS',
-    'FLOWER POTS CRACKERS',
-    'CHAKKAR CRACKERS',
-    'NEW VERITY CHAKKAR',
-    'BOMB CRACKERS',
-    'BIJILI CRACKERS',
-    'TWINKLING STAR',
-    'PENCIL CRACKERS',
-    'ROCKET CRACKERS',
-    'PAPER BOMB CRACKERS',
-    'DELUXE CRACKERS',
-    'WALA CRACKERS',
-    'PEACOCK CRACKERS',
-    'KIDS VERITES CRACKERS',
-    'SPECIAL VERITES',
-    'FOUNTAIN FANCY CRACKERS',
-    'MINI FOUNTAIN',
-    'MINI FOUNTAIN - BACARDI',
-    '4" FOUNTAIN',
-    'ARIAL FANCY CRACKERS',
-    '2026 NEW VERITES',
-    'TIN FOUNTAIN',
-    'MULTI COLOUR SHOT',
-    'SINGLE SHOT ITAMS',
-    '2 PCS FANCY CRACKERS',
-    'SPARKLERS CRACKERS',
-    'MATCH BOX',
-    'STONE CARTOON CRACKERS',
-    'GIFT BOX NET RATE',
-  ];
 
   // Extract unique categories from crackers data, sorted by CATEGORY_ORDER
   const categories = useMemo(() => {
@@ -206,7 +174,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
                       <td className="py-2 text-center">
                         <div className="flex items-center space-x-1 justify-center">
                           <button
-                            onClick={() => removeFromCart(item.productId, 1)}
+                            onClick={() => addToCart(item.productId, -1)}
                             className="w-5 h-5 bg-slate-100 hover:bg-slate-250 text-slate-800 rounded flex items-center justify-center font-bold text-xs cursor-pointer active:scale-90"
                           >
                             -

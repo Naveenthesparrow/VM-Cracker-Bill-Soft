@@ -1,21 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Save, X, Edit, Power, PowerOff, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Save, X, Edit, Power, PowerOff, ShieldCheck, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
+import { CATEGORY_ORDER } from '../context/localCrackers.js';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const Products = () => {
-  const { crackers, refreshData, offlineMode } = useCart();
+  const { crackers, addCracker, updateCracker, refreshData, offlineMode } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   
   // Modals / Editing States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null); // Item ID being edited
+  const [editCategory, setEditCategory] = useState('');
   const [editRate, setEditRate] = useState('');
   const [editDiscount, setEditDiscount] = useState('');
-  
+  const [openCategoryDropdownId, setOpenCategoryDropdownId] = useState(null);
+
   // Add Form State
   const [newProductId, setNewProductId] = useState('');
   const [newName, setNewName] = useState('');
@@ -25,11 +28,49 @@ export const Products = () => {
   const [newDiscount, setNewDiscount] = useState('90');
   const [newIsNetRate, setNewIsNetRate] = useState(false);
 
-  // Group Categories
-  const categories = useMemo(() => {
-    const cats = new Set(crackers.map((c) => c.category));
-    return ['All', ...Array.from(cats)];
+  // Auto-calculate next product code/ID
+  const getNextProductId = (crackersList) => {
+    let maxId = 0;
+    (crackersList || []).forEach((c) => {
+      const num = parseInt(c.productId, 10);
+      if (!isNaN(num) && num > maxId) {
+        maxId = num;
+      }
+    });
+    return (maxId + 1).toString();
+  };
+
+  // Open add modal with prefilled Code/ID & Category
+  const openAddModal = () => {
+    const nextId = getNextProductId(crackers);
+    setNewProductId(nextId);
+    if (selectedCategory && selectedCategory !== 'All') {
+      setNewCategory(selectedCategory);
+    } else if (activeCategories.length > 0) {
+      setNewCategory(activeCategories[0]);
+    }
+    setIsAddModalOpen(true);
+  };
+
+  // Active Categories in inventory (kept short and easy to select)
+  const activeCategories = useMemo(() => {
+    const available = new Set(crackers.map((c) => c.category));
+    const ordered = CATEGORY_ORDER.filter((cat) => available.has(cat));
+    available.forEach((cat) => {
+      if (!CATEGORY_ORDER.includes(cat)) ordered.push(cat);
+    });
+    return ordered.length > 0 ? ordered : CATEGORY_ORDER;
   }, [crackers]);
+
+  // Full category list for dropdown selection
+  const categoriesForSelect = useMemo(() => {
+    const cats = new Set([...CATEGORY_ORDER, ...crackers.map((c) => c.category)]);
+    return Array.from(cats);
+  }, [crackers]);
+
+  const categories = useMemo(() => {
+    return ['All', ...activeCategories];
+  }, [activeCategories]);
 
   // Filter
   const filteredProducts = useMemo(() => {
@@ -49,25 +90,16 @@ export const Products = () => {
   // Handle Toggle Stock Status
   const handleToggleStock = async (item) => {
     try {
-      if (offlineMode) {
-        item.inStock = !item.inStock;
-        alert('Stock status updated locally! Start backend to sync.');
-        refreshData();
-        return;
-      }
-      await axios.put(`${API_URL}/crackers/${item._id}`, {
-        inStock: !item.inStock
-      });
-      refreshData();
+      await updateCracker(item._id || item.productId, { inStock: item.inStock === false ? true : false });
     } catch (error) {
       console.error('Failed to toggle stock status:', error);
-      alert('Error updating item stock status.');
     }
   };
 
   // Start Edit Inline
   const startEdit = (item) => {
     setEditingItem(item._id);
+    setEditCategory(item.category);
     setEditRate(item.rate);
     setEditDiscount(item.discountPercentage);
   };
@@ -76,22 +108,12 @@ export const Products = () => {
   const saveEdit = async (item) => {
     try {
       const payload = {
+        category: editCategory,
         rate: Number(editRate),
         discountPercentage: Number(editDiscount)
       };
-
-      if (offlineMode) {
-        item.rate = payload.rate;
-        item.discountPercentage = payload.discountPercentage;
-        alert('Item updated locally!');
-        setEditingItem(null);
-        refreshData();
-        return;
-      }
-
-      await axios.put(`${API_URL}/crackers/${item._id}`, payload);
+      await updateCracker(item._id || item.productId, payload);
       setEditingItem(null);
-      refreshData();
     } catch (error) {
       console.error('Failed to update cracker details:', error);
       alert('Error saving updates.');
@@ -112,30 +134,15 @@ export const Products = () => {
     };
 
     try {
-      if (offlineMode) {
-        crackers.push({ ...payload, _id: `temp_${Date.now()}`, inStock: true });
-        alert('Cracker added locally! Start backend to save permanently.');
-        setIsAddModalOpen(false);
-        // Reset state
-        setNewProductId('');
-        setNewName('');
-        setNewTamilName('');
-        setNewRate('');
-        refreshData();
-        return;
-      }
-
-      await axios.post(`${API_URL}/crackers`, payload);
+      await addCracker(payload);
       setIsAddModalOpen(false);
-      // Reset state
-      setNewProductId('');
+      // Reset form
       setNewName('');
       setNewTamilName('');
       setNewRate('');
-      refreshData();
     } catch (error) {
       console.error('Failed to add cracker:', error);
-      alert(error.response?.data?.message || 'Error adding new product.');
+      alert('Error adding new product.');
     }
   };
 
@@ -150,7 +157,7 @@ export const Products = () => {
         </div>
         
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={openAddModal}
           className="flex items-center justify-center space-x-1.5 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold rounded-xl shadow-lg transition-all transform active:scale-95 cursor-pointer text-xs self-start sm:self-auto"
         >
           <Plus className="w-4.5 h-4.5" />
@@ -219,29 +226,66 @@ export const Products = () => {
                 {/* Edit Controls / Details */}
                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
                   {isEditing ? (
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
+                    <div className="space-y-2 text-xs">
+                      <div className="relative">
                         <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Rate (₹)
+                          Category Group
                         </label>
-                        <input
-                          type="number"
-                          value={editRate}
-                          onChange={(e) => setEditRate(e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-950 font-bold"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => setOpenCategoryDropdownId(openCategoryDropdownId === item._id ? null : item._id)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-slate-200 focus:border-amber-500 rounded-lg text-slate-950 font-bold text-xs flex justify-between items-center cursor-pointer transition-colors"
+                        >
+                          <span className="truncate">{editCategory || item.category}</span>
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+                        </button>
+
+                        {openCategoryDropdownId === item._id && (
+                          <div className="absolute z-30 top-full left-0 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-36 overflow-y-auto scrollbar-thin">
+                            {categoriesForSelect.map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => {
+                                  setEditCategory(cat);
+                                  setOpenCategoryDropdownId(null);
+                                }}
+                                className={`w-full text-left px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer border-b border-slate-100 last:border-0 ${
+                                  editCategory === cat
+                                    ? 'bg-amber-500 text-slate-950 font-extrabold'
+                                    : 'hover:bg-amber-50 text-slate-700'
+                                }`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Discount (%)
-                        </label>
-                        <input
-                          type="number"
-                          disabled={item.isNetRate}
-                          value={item.isNetRate ? 0 : editDiscount}
-                          onChange={(e) => setEditDiscount(e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-950 font-bold disabled:opacity-50"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Rate (₹)
+                          </label>
+                          <input
+                            type="number"
+                            value={editRate}
+                            onChange={(e) => setEditRate(e.target.value)}
+                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-950 font-bold focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                            Discount (%)
+                          </label>
+                          <input
+                            type="number"
+                            disabled={item.isNetRate}
+                            value={item.isNetRate ? 0 : editDiscount}
+                            onChange={(e) => setEditDiscount(e.target.value)}
+                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-950 font-bold disabled:opacity-50 focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
                       </div>
                     </div>
                   ) : (

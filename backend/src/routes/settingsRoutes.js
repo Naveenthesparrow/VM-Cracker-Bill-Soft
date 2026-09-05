@@ -11,10 +11,10 @@ router.get('/', async (req, res) => {
       // Create default settings if not exists
       settings = await Settings.create({
         shopName: 'VM Crackers',
-        shopAddress: '4/210 Bypass Road, Sivakasi East, Tamil Nadu - 626189',
-        shopPhone: '98431 23456',
+        shopAddress: 'Sivakasi to Vembakottai Main Road, Vanamoorthilingapuram',
+        shopPhone: '+91 63698 09391, +91 89402 23892',
         globalDiscountPercentage: 90,
-        upiId: 'vmcrackers@okaxis'
+        upiId: '6369809391@upi'
       });
     }
     res.json(settings);
