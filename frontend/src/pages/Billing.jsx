@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Minus, Trash2, Check, Printer, ListFilter, User, Phone, ShoppingBag, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Minus, Trash2, Check, Printer, ListFilter, User, Phone, ShoppingBag, ShoppingCart, ChevronRight, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { CATEGORY_ORDER } from '../context/localCrackers.js';
 import BillPreview from '../components/BillPreview.jsx';
@@ -29,7 +29,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [savedOrder, setSavedOrder] = useState(null);
-  const [isCartCollapsed, setIsCartCollapsed] = useState(false);
+  const [isCartOpenMobile, setIsCartOpenMobile] = useState(false);
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(true);
   const [isTotalsExpanded, setIsTotalsExpanded] = useState(true);
 
@@ -89,67 +89,63 @@ export const Billing = ({ navSearchQuery = '' }) => {
 
   return (
     <>
-      <div className="h-[calc(100vh-61px)] flex flex-col md:flex-row overflow-hidden bg-slate-100 text-slate-800 no-print">
+      <div className="h-[calc(100vh-61px)] flex flex-row overflow-hidden bg-slate-100 text-slate-800 no-print relative">
       
-      {/* LEFT COLUMN: Active Cart / Bill Sheet */}
-      <div className={`bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
-        isCartCollapsed
-          ? 'h-[48px] md:h-full md:w-[390px] flex-none'
-          : 'h-[55vh] md:h-full md:w-[390px] flex-[0.9] md:flex-none'
-      }`}>
+      {/* MOBILE CART OVERLAY */}
+      <div 
+        className={`md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isCartOpenMobile ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setIsCartOpenMobile(false)}
+      />
+
+      {/* LEFT COLUMN: Active Cart / Bill Sheet (Sidebar on Desktop, Bottom Sheet on Mobile) */}
+      <div className={`
+        fixed md:static inset-x-0 bottom-0 z-50 md:z-auto
+        bg-white md:border-r border-slate-200 flex flex-col 
+        transition-transform duration-300 ease-in-out overflow-hidden
+        rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none
+        h-[85vh] md:h-full md:w-[390px] flex-none
+        ${isCartOpenMobile ? 'translate-y-0' : 'translate-y-full md:translate-y-0'}
+      `}>
         {/* Cart Header */}
         <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between h-[48px] shrink-0">
           <div className="flex items-center space-x-2">
-            {/* Collapse/Expand Toggle Button on Mobile */}
+            {/* Close Button on Mobile */}
             <button
-              onClick={() => setIsCartCollapsed(!isCartCollapsed)}
+              onClick={() => setIsCartOpenMobile(false)}
               className="p-1 -ml-1 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded md:hidden cursor-pointer transition-colors"
             >
-              {isCartCollapsed ? (
-                <ChevronDown className="w-4 h-4 font-bold" />
-              ) : (
-                <ChevronUp className="w-4 h-4 font-bold" />
-              )}
+              <X className="w-5 h-5 font-bold" />
             </button>
             <h2 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-              {isCartCollapsed && cartItems.length > 0
+              {cartItems.length > 0
                 ? `Cart (${totalQuantity} Units - ₹${netTotal})`
                 : `Selected Items (${cartItems.length})`}
             </h2>
           </div>
           
           <div className="flex items-center space-x-2">
-            {!isCartCollapsed && cartItems.length > 0 && (
+            {cartItems.length > 0 && (
               <button
                 onClick={clearCart}
                 className="text-[10px] font-black text-red-650 hover:text-red-750 flex items-center space-x-1 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Clear Cart</span>
-              </button>
-            )}
-            {isCartCollapsed && cartItems.length > 0 && (
-              <button
-                onClick={() => setIsCheckoutOpen(true)}
-                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-lg text-[10px] cursor-pointer shadow-sm border border-amber-600 md:hidden"
-              >
-                Checkout
+                <span>Clear</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Selected Items Table */}
-        <div className={`flex-1 overflow-y-auto p-2.5 scrollbar-thin transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
+        <div className="flex-1 overflow-y-auto p-2.5 scrollbar-thin transition-all duration-300 block">
           {cartItems.length > 0 ? (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-bold text-[10px] uppercase">
-                  <th className="pb-2">Item</th>
-                  <th className="pb-2 text-center">Qty</th>
-                  <th className="pb-2 text-center">Rate</th>
-                  <th className="pb-2 text-right">Total</th>
-                  <th className="pb-2"></th>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold text-[11px] uppercase tracking-wide">
+                  <th className="pb-3 pl-1">Item</th>
+                  <th className="pb-3 text-center w-[90px]">Qty</th>
+                  <th className="pb-3 text-right w-[70px]">Rate</th>
+                  <th className="pb-3 w-[40px]"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -159,43 +155,46 @@ export const Billing = ({ navSearchQuery = '' }) => {
                   const discountedRate = item.isNetRate
                     ? item.rate
                     : Math.round(item.rate * (1 - discount / 100));
-                  const itemAmount = discountedRate * qty;
                   return (
                     <tr key={item.productId} className="text-slate-800 hover:bg-slate-50/50">
-                      <td className="py-2 pr-1.5 min-w-0 max-w-[130px]">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-650 rounded text-[9px] font-black font-mono border border-slate-200">{item.productId}</span>
-                          <span className="font-extrabold text-[11px] truncate">{item.name}</span>
+                      <td className="py-3 pr-1.5 min-w-0 max-w-[140px] pl-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black font-mono border border-slate-200">{item.productId}</span>
+                          <span className="font-extrabold text-xs truncate leading-tight">{item.name}</span>
                         </div>
                         {item.tamilName && (
-                          <div className="text-[9px] text-slate-400 font-bold pl-7 truncate">({item.tamilName})</div>
+                          <div className="text-[10px] text-slate-400 font-bold pl-8 truncate mt-0.5">({item.tamilName})</div>
                         )}
                       </td>
-                      <td className="py-2 text-center">
-                        <div className="flex items-center space-x-1 justify-center">
+                      <td className="py-3 text-center">
+                        <div className="flex items-center space-x-1.5 justify-center">
                           <button
                             onClick={() => addToCart(item.productId, -1)}
-                            className="w-5 h-5 bg-slate-100 hover:bg-slate-250 text-slate-800 rounded flex items-center justify-center font-bold text-xs cursor-pointer active:scale-90"
+                            className="w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg flex items-center justify-center font-black text-sm cursor-pointer active:scale-90 transition-transform"
                           >
                             -
                           </button>
-                          <span className="w-6 text-center font-black text-xs text-slate-900">{qty}</span>
+                          <span className="w-7 text-center font-black text-sm text-slate-900">{qty}</span>
                           <button
                             onClick={() => addToCart(item.productId, 1)}
-                            className="w-5 h-5 bg-slate-100 hover:bg-slate-250 text-slate-800 rounded flex items-center justify-center font-bold text-xs cursor-pointer active:scale-90"
+                            className="w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg flex items-center justify-center font-black text-sm cursor-pointer active:scale-90 transition-transform"
                           >
                             +
                           </button>
                         </div>
                       </td>
-                      <td className="py-2 text-center font-bold text-slate-605 text-[11px]">₹{discountedRate}</td>
-                      <td className="py-2 text-right font-black text-emerald-600 text-[11px]">₹{itemAmount}</td>
-                      <td className="py-2 pl-2 text-center">
+                      <td className="py-3 text-right">
+                        {!item.isNetRate && (
+                          <div className="text-[9px] text-red-400 line-through mb-0.5 font-medium leading-none">₹{item.rate}</div>
+                        )}
+                        <div className="font-black text-emerald-600 text-xs leading-none">₹{discountedRate}</div>
+                      </td>
+                      <td className="py-3 pl-2 text-center">
                         <button
                           onClick={() => updateQuantity(item.productId, 0)}
-                          className="text-red-505 hover:text-red-700 p-0.5 cursor-pointer rounded hover:bg-slate-100 active:scale-90"
+                          className="text-red-500 hover:text-red-700 p-1.5 cursor-pointer rounded hover:bg-slate-100 active:scale-90 transition-all"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
@@ -213,45 +212,15 @@ export const Billing = ({ navSearchQuery = '' }) => {
         </div>
 
         {/* Cart Totals & Actions */}
-        <div className={`px-3 py-1.5 bg-slate-50 border-t border-slate-200 transition-all duration-300 ${isCartCollapsed ? 'hidden md:block' : 'block'}`}>
+        <div className="p-4 bg-slate-50 border-t border-slate-200 transition-all duration-300 block shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none">
 
-          {/* Toggle Header Row */}
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-              {!isTotalsExpanded && cartItems.length > 0 && (
-                <span className="text-emerald-600 font-mono"> ₹{netTotal}</span>
-              )}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsTotalsExpanded(!isTotalsExpanded)}
-              className="flex items-center space-x-1 text-[10px] font-black text-slate-600 hover:text-amber-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg cursor-pointer transition-colors border border-slate-200/80"
-            >
-              <span>{isTotalsExpanded ? 'Close' : 'Open'}</span>
-              {isTotalsExpanded ? (
-                <ChevronUp className="w-3.5 h-3.5" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5" />
-              )}
-            </button>
-          </div>
-
-          {/* Collapsible Content */}
-          {isTotalsExpanded && (
-            <div className="space-y-1.5">
+          {/* Breakdown Content */}
+          <div className="space-y-3">
               {/* Breakdown */}
-              <div className="space-y-0.5 text-[10px] font-bold text-slate-500">
-                <div className="flex justify-between">
-                  <span>Gross Total:</span>
-                  <span className="font-mono">₹{grossTotal}</span>
-                </div>
-                <div className="flex justify-between text-emerald-600 font-extrabold">
-                  <span>Saved (90%):</span>
-                  <span className="font-mono">-₹{discountTotal}</span>
-                </div>
-                <div className="flex justify-between text-slate-900 font-black text-[11px] border-t border-slate-200 pt-1 mt-0.5">
+              <div className="space-y-1.5 text-xs font-bold text-slate-500">
+                <div className="flex justify-between items-center text-slate-900 font-black text-sm pt-1">
                   <span>Net Payable:</span>
-                  <span className="text-xs text-emerald-600 font-mono">₹{netTotal}</span>
+                  <span className="text-lg text-emerald-600 font-mono">₹{netTotal}</span>
                 </div>
               </div>
 
@@ -259,27 +228,22 @@ export const Billing = ({ navSearchQuery = '' }) => {
               <button
                 onClick={() => cartItems.length > 0 && setIsCheckoutOpen(true)}
                 disabled={cartItems.length === 0}
-                className={`w-full py-1.5 rounded-lg shadow-md transition-all font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98 ${
+                className={`w-full py-3 rounded-xl shadow-md transition-all font-black text-sm uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98 ${
                   cartItems.length > 0
                     ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border border-amber-600'
                     : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
                 }`}
               >
-                <Printer className="w-3.5 h-3.5" />
+                <Printer className="w-5 h-5" />
                 <span>Generate Bill</span>
               </button>
             </div>
-          )}
         </div>
 
       </div>
 
       {/* RIGHT COLUMN: Product Catalogue Grid */}
-      <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden p-3 space-y-2.5 ${
-        isCartCollapsed
-          ? 'h-[calc(100vh-109px)] md:h-full flex-1'
-          : 'h-[45vh] md:h-full flex-[1.1]'
-      }`}>
+      <div className="flex flex-col flex-1 h-full overflow-hidden p-3 space-y-2.5 pb-24 md:pb-3">
         
         {/* Categories — unified card like SELECTED ITEMS */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-xs shrink-0 overflow-hidden">
@@ -310,16 +274,16 @@ export const Billing = ({ navSearchQuery = '' }) => {
 
           {/* Pills */}
           {isCategoryExpanded && (
-            <div className="px-2.5 py-2">
-              <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto scrollbar-thin">
+            <div className="p-2.5 bg-white border-t border-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 pr-1">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`whitespace-nowrap px-2.5 py-1 rounded-xl text-[10px] font-black transition-all cursor-pointer ${
+                    className={`w-full h-full px-2 py-2 rounded-lg text-[10px] font-black tracking-wide transition-all duration-200 cursor-pointer active:scale-95 flex items-center justify-center text-center leading-snug border ${
                       selectedCategory === cat
-                        ? 'bg-amber-500 text-slate-950 border border-amber-600 shadow-xs'
-                        : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
+                        ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md'
+                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200 hover:border-slate-300 hover:text-slate-900 shadow-xs'
                     }`}
                   >
                     {cat.toUpperCase()}
@@ -397,6 +361,21 @@ export const Billing = ({ navSearchQuery = '' }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* FLOATING CART BUTTON (MOBILE ONLY) */}
+      <div className="md:hidden fixed bottom-6 right-4 z-30 no-print">
+        <button
+          onClick={() => setIsCartOpenMobile(true)}
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 p-4 rounded-full shadow-xl flex items-center justify-center relative cursor-pointer active:scale-95 transition-transform"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          {totalQuantity > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm border-2 border-white min-w-[20px] text-center">
+              {totalQuantity}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Checkout Drawer (Bottom Sheet Modal on Mobile, Centered Modal on Desktop) */}
@@ -496,15 +475,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
 
               {/* Order Breakdown */}
               <div className="bg-slate-50 p-4 border border-slate-150 rounded-xl space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-500">
-                  <span>Gross Total</span>
-                  <span>₹{grossTotal}</span>
-                </div>
-                <div className="flex justify-between text-emerald-600 font-bold">
-                  <span>Discount (Saved)</span>
-                  <span>-₹{discountTotal}</span>
-                </div>
-                <div className="flex justify-between text-slate-900 font-black text-sm border-t border-slate-200 pt-2">
+                <div className="flex justify-between text-slate-900 font-black text-sm">
                   <span>Net Payable</span>
                   <span className="text-base text-emerald-600 font-black font-mono">₹{netTotal}</span>
                 </div>
