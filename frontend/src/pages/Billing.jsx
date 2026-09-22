@@ -243,7 +243,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
       </div>
 
       {/* RIGHT COLUMN: Product Catalogue Grid */}
-      <div className="flex flex-col flex-1 h-full overflow-hidden p-3 space-y-2.5 pb-24 md:pb-3">
+      <div className="flex flex-col flex-1 h-full overflow-hidden p-3 space-y-2.5">
         
         {/* Categories — unified card like SELECTED ITEMS */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-xs shrink-0 overflow-hidden">
@@ -275,7 +275,10 @@ export const Billing = ({ navSearchQuery = '' }) => {
           {/* Pills */}
           {isCategoryExpanded && (
             <div className="p-2.5 bg-white border-t border-slate-200">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 pr-1">
+              <div 
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 pr-1 overscroll-y-contain scroll-smooth"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -296,7 +299,7 @@ export const Billing = ({ navSearchQuery = '' }) => {
 
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin pb-24 md:pb-2">
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
               {filteredProducts.map((item) => {
