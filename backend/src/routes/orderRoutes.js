@@ -1,12 +1,16 @@
 import express from 'express';
 import Order from '../models/orderModel.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET all orders
+// Apply auth middleware to all order routes
+router.use(protect);
+
+// GET all orders for the logged-in shop
 router.get('/', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find({ shopId: req.user._id }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -30,6 +34,7 @@ router.post('/', async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
 
     const todayCount = await Order.countDocuments({
+      shopId: req.user._id,
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
@@ -37,6 +42,7 @@ router.post('/', async (req, res) => {
 
     const newOrder = new Order({
       ...req.body,
+      shopId: req.user._id,
       billNumber
     });
 
@@ -51,8 +57,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { customerName, customerPhone, items, grossTotal, discountTotal, netTotal, paymentMode } = req.body;
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: req.params.id, shopId: req.user._id },
       { customerName, customerPhone, items, grossTotal, discountTotal, netTotal, paymentMode },
       { new: true, runValidators: true }
     );
@@ -68,7 +74,7 @@ router.put('/:id', async (req, res) => {
 // DELETE an order
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
+    const deletedOrder = await Order.findOneAndDelete({ _id: req.params.id, shopId: req.user._id });
     if (!deletedOrder) {
       return res.status(404).json({ message: 'Bill not found' });
     }

@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 const settingsSchema = new mongoose.Schema({
+  shopId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
   shopName: {
     type: String,
     default: 'VM Crackers'

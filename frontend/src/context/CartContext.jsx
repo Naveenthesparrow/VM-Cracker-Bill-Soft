@@ -7,6 +7,8 @@ const CartContext = createContext();
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const CartProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('auth_token') || null);
   const [crackers, setCrackers] = useState([]);
   const [settings, setSettings] = useState(defaultSettings);
   const [orders, setOrders] = useState([]);
@@ -20,10 +22,17 @@ export const CartProvider = ({ children }) => {
 
   // Load data on init
   const fetchData = async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
       // 1. Fetch settings
-      const settingsRes = await axios.get(`${API_URL}/settings`);
+      const settingsRes = await axios.get(`${API_URL}/settings`, config);
       setSettings(settingsRes.data);
 
       // 2. Fetch crackers
@@ -31,10 +40,14 @@ export const CartProvider = ({ children }) => {
       setCrackers(crackersRes.data);
 
       // 3. Fetch orders
-      const ordersRes = await axios.get(`${API_URL}/orders`);
+      const ordersRes = await axios.get(`${API_URL}/orders`, config);
       setOrders(ordersRes.data);
       setOfflineMode(false);
     } catch (error) {
+      if (error.response?.status === 401) {
+        logout();
+        return;
+      }
       console.warn('Backend is offline. Switching to Offline Mode (LocalStorage & Static Fallbacks).', error);
       setOfflineMode(true);
 
@@ -71,8 +84,42 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (token) {
+      // For simplicity, we decode user from token or just rely on API returning it on login.
+      // In a real app we'd call /api/auth/me here to validate token and get user object.
+      // We will assume token is valid and just let fetchData handle 401s.
+      // The user object is set during login. If refreshed, we might lose `user.name` unless we decode the JWT or fetch it.
+      // We'll set a dummy user if it's missing just to bypass the login screen if token exists.
+      if (!user) setUser({ id: 'authenticated' });
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Auth Functions
+  const loginWithGoogle = async (credential) => {
+    try {
+      const res = await axios.post(`${API_URL}/auth/google`, { credential });
+      const { token, user } = res.data;
+      setToken(token);
+      setUser(user);
+      localStorage.setItem('auth_token', token);
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('auth_token');
+    clearCart();
+    setOrders([]);
+    setSettings(defaultSettings);
+  };
 
   // Add/adjust item
   const addToCart = (productId, quantity = 1) => {
@@ -124,10 +171,12 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('cracker_settings', JSON.stringify(newSettings));
         return true;
       }
-      const res = await axios.put(`${API_URL}/settings`, newSettings);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const res = await axios.put(`${API_URL}/settings`, newSettings, config);
       setSettings(res.data);
       return true;
     } catch (error) {
+      if (error.response?.status === 401) logout();
       console.error('Failed to update settings:', error);
       return false;
     }
@@ -167,11 +216,13 @@ export const CartProvider = ({ children }) => {
         return newOrder;
       }
 
-      const res = await axios.post(`${API_URL}/orders`, orderData);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const res = await axios.post(`${API_URL}/orders`, orderData, config);
       setOrders((prev) => [res.data, ...prev]);
       clearCart();
       return res.data;
     } catch (error) {
+      if (error.response?.status === 401) logout();
       console.error('Failed to save order:', error);
       alert('Could not save order. If the server is offline, toggle offline mode.');
       return null;
@@ -189,10 +240,12 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('cracker_orders', JSON.stringify(updatedOrders));
         return updatedOrders.find(o => o._id === orderId);
       }
-      const res = await axios.put(`${API_URL}/orders/${orderId}`, updatedData);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const res = await axios.put(`${API_URL}/orders/${orderId}`, updatedData, config);
       setOrders(prev => prev.map(o => (o._id === orderId ? res.data : o)));
       return res.data;
     } catch (error) {
+      if (error.response?.status === 401) logout();
       console.error('Failed to update order:', error);
       return null;
     }
@@ -207,10 +260,12 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('cracker_orders', JSON.stringify(updatedOrders));
         return true;
       }
-      await axios.delete(`${API_URL}/orders/${orderId}`);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(`${API_URL}/orders/${orderId}`, config);
       setOrders(prev => prev.filter(o => o._id !== orderId));
       return true;
     } catch (error) {
+      if (error.response?.status === 401) logout();
       console.error('Failed to delete order:', error);
       return false;
     }
@@ -311,6 +366,10 @@ export const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider
       value={{
+        user,
+        token,
+        loginWithGoogle,
+        logout,
         crackers,
         settings,
         orders,

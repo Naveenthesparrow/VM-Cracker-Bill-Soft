@@ -1,20 +1,25 @@
 import express from 'express';
 import Settings from '../models/settingsModel.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET shop settings (always returns a single settings document)
+// Apply auth middleware to all settings routes
+router.use(protect);
+
+// GET shop settings
 router.get('/', async (req, res) => {
   try {
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne({ shopId: req.user._id });
     if (!settings) {
       // Create default settings if not exists
       settings = await Settings.create({
-        shopName: 'VM Crackers',
+        shopId: req.user._id,
+        shopName: `${req.user.name}'s Shop`,
         shopAddress: 'Sivakasi to Vembakottai Main Road, Vanamoorthilingapuram',
         shopPhone: '+91 63698 09391, +91 89402 23892',
         globalDiscountPercentage: 90,
-        upiId: '6369809391@upi'
+        upiId: '@upi'
       });
     }
     res.json(settings);
@@ -26,9 +31,9 @@ router.get('/', async (req, res) => {
 // PUT update shop settings
 router.put('/', async (req, res) => {
   try {
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne({ shopId: req.user._id });
     if (!settings) {
-      settings = new Settings(req.body);
+      settings = new Settings({ ...req.body, shopId: req.user._id });
     } else {
       Object.assign(settings, req.body);
     }

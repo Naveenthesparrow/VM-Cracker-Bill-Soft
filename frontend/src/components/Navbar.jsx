@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, History, Package, BarChart2, Menu, X, Search } from 'lucide-react';
+import { ShoppingCart, History, Package, BarChart2, Menu, X, Search, Settings, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 
 export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
-  const { totalItems } = useCart();
+  const { totalItems, settings, logout } = useCart();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,7 +13,8 @@ export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
     { id: 'billing', label: 'Billing', icon: ShoppingCart, count: totalItems },
     { id: 'orders', label: 'History', icon: History },
     { id: 'products', label: 'Products', icon: Package },
-    { id: 'analytics', label: 'Analytics', icon: BarChart2 }
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
@@ -31,8 +32,8 @@ export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
               <Menu className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-base font-black tracking-wider text-rose-650 font-mono">
-                VM CRACKERS
+              <h1 className="text-base font-black tracking-wider text-rose-650 font-mono line-clamp-1 max-w-[180px]">
+                {settings?.shopName?.toUpperCase() || 'VM CRACKERS'}
               </h1>
               <p className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Billing Engine</p>
             </div>
@@ -114,9 +115,9 @@ export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
         
         {/* Sidebar Logo Header */}
         <div className="h-[61px] flex items-center justify-between px-6 border-b border-slate-200/80">
-          <div>
-            <h1 className="text-base font-black tracking-wider text-rose-650 font-mono">
-              VM CRACKERS
+          <div className="flex-1 min-w-0 pr-2">
+            <h1 className="text-base font-black tracking-wider text-rose-650 font-mono truncate">
+              {settings?.shopName?.toUpperCase() || 'VM CRACKERS'}
             </h1>
             <p className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Billing Engine</p>
           </div>
@@ -162,6 +163,22 @@ export const Navbar = ({ activeTab, setActiveTab, onSearch }) => {
               </button>
             );
           })}
+        </div>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-slate-200/80">
+          <button
+            onClick={() => {
+              logout();
+              setIsMobileOpen(false);
+            }}
+            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
+          >
+            <div className="flex items-center space-x-3">
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </div>
+          </button>
         </div>
       </aside>
     </>
