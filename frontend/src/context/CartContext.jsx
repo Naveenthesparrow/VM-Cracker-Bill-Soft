@@ -224,7 +224,8 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       if (error.response?.status === 401) logout();
       console.error('Failed to save order:', error);
-      alert('Could not save order. If the server is offline, toggle offline mode.');
+      const errorMsg = error.response?.data?.message || error.message;
+      alert(`Could not save order: ${errorMsg}\n\nIf the server is offline, toggle offline mode.`);
       return null;
     }
   };

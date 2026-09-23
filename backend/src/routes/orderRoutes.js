@@ -33,12 +33,22 @@ router.post('/', async (req, res) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const todayCount = await Order.countDocuments({
+    const lastOrder = await Order.findOne({
       shopId: req.user._id,
       createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
+    }).sort({ createdAt: -1 });
 
-    const billNumber = `INV-${dateStr}-${String(todayCount + 1).padStart(3, '0')}`;
+    let nextSequence = 1;
+    if (lastOrder && lastOrder.billNumber) {
+      const parts = lastOrder.billNumber.split('-');
+      const lastSeq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSeq)) {
+        nextSequence = lastSeq + 1;
+      }
+    }
+
+    const shopPrefix = req.user._id.toString().slice(-4).toUpperCase();
+    const billNumber = `INV-${shopPrefix}-${dateStr}-${String(nextSequence).padStart(3, '0')}`;
 
     const newOrder = new Order({
       ...req.body,
